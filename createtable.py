@@ -58,9 +58,9 @@ for itr in range(5):
     statement = statement + '\n' + "Annotation " + 'varchar(255),'
     statement = statement[:-1] + ");"
 
-    # print(statement)
-    # mycursor.execute(statement)
-    # mydb.commit()
+    print(statement)
+    mycursor.execute(statement)
+    mydb.commit()
 
     # set columns of headers in the table
     head = ""
@@ -92,11 +92,11 @@ for itr in range(5):
     if(itr == 0):
         data3=data.groupby(data.columns.tolist(),as_index=False).size().reset_index(name='Annotation')
         print(data3)
-        # cols = "`,`".join([str(i) for i in data3.columns.tolist()])
-        # for i,row in data3.iterrows():
-        #     sql = "INSERT INTO " +tableName+" (`" +cols + "`) VALUES (" + "%s,"*(len(row)-1) + "%s)"
-        #     mycursor.execute(sql, tuple(row))
-        #     mydb.commit()
+        cols = "`,`".join([str(i) for i in data3.columns.tolist()])
+        for i,row in data3.iterrows():
+            sql = "INSERT INTO " +tableName+" (`" +cols + "`) VALUES (" + "%s,"*(len(row)-1) + "%s)"
+            mycursor.execute(sql, tuple(row))
+            mydb.commit()
 
     duplicate_remov_dataFrame = pd.DataFrame(data.drop_duplicates()) 
     semantaincs_arr = []
@@ -125,24 +125,24 @@ for itr in range(5):
         duplicate_remov_dataFrame['Annotation'] = semantaincs_arr
         print(duplicate_remov_dataFrame)
 
-    # if(itr > 0):   
-    #     data2 = data.drop_duplicates()
-    #     cols = "`,`".join([str(i) for i in duplicate_remov_dataFrame.columns.tolist()])
-    #     for i,row in duplicate_remov_dataFrame.iterrows():
-    #         sql = "INSERT INTO " +tableName+ "(`" +cols + "`) VALUES (" + "%s,"*(len(row)-1) + "%s)"
-    #         mycursor.execute(sql, tuple(row))
-    #         mydb.commit()             
-        # print(data2)
+    if(itr > 0):   
+        data2 = data.drop_duplicates()
+        cols = "`,`".join([str(i) for i in duplicate_remov_dataFrame.columns.tolist()])
+        for i,row in duplicate_remov_dataFrame.iterrows():
+            sql = "INSERT INTO " +tableName+ "(`" +cols + "`) VALUES (" + "%s,"*(len(row)-1) + "%s)"
+            mycursor.execute(sql, tuple(row))
+            mydb.commit()             
+        print(data2)
 
 # df = pd.read_sql_query("select * from dBproject4;", mydb)
 while True:
     input_query=input("Enter the relational algebra query: ")
     read_table = pd.read_sql_query(input_query, mydb)
 
-    # semantic_choice = input("choose the semantincs:\n 0 - Bag semantics\n 1 - Provence semantics\n 2 - Probability semantics\n 3 - Certainity semantics\n 4 - Standard semantics\n " )
+    semantic_choice = input("choose the semantincs:\n 0 - Bag semantics\n 1 - Provence semantics\n 2 - Probability semantics\n 3 - Certainity semantics\n 4 - Standard semantics\n " )
     
-    # if(semantic_choice == str(1)):
-    # projection = read_table.groupby(read_table.columns.tolist(),as_index=False).size()
+    if(semantic_choice == str(1)):
+    projection = read_table.groupby(read_table.columns.tolist(),as_index=False).size()
     #     print(projection)
     print(read_table)    
     input_question = input("Do you want to continue yes/no: ")
