@@ -48,7 +48,6 @@ mydb = mysql.connector.connect(
 mycursor = mydb.cursor()
 
 for itr in range(5):
-    print(itr)
     tableName = "kbs_database"+str(itr)
     statement = "create table "+tableName+"("
     for i in range(len(headers)):
@@ -59,7 +58,7 @@ for itr in range(5):
     statement = statement + '\n' + "Annotation " + 'varchar(255),'
     statement = statement[:-1] + ");"
 
-    print(statement)
+    # print(statement)
     # mycursor.execute(statement)
     # mydb.commit()
 
@@ -92,54 +91,60 @@ for itr in range(5):
     # bag semantics 
     if(itr == 0):
         data3=data.groupby(data.columns.tolist(),as_index=False).size().reset_index(name='Annotation')
-        # print(data3)
-        cols = "`,`".join([str(i) for i in data3.columns.tolist()])
-        for i,row in data3.iterrows():
-            sql = "INSERT INTO " +tableName+" (`" +cols + "`) VALUES (" + "%s,"*(len(row)-1) + "%s)"
-            mycursor.execute(sql, tuple(row))
-            mydb.commit()
+        print(data3)
+        # cols = "`,`".join([str(i) for i in data3.columns.tolist()])
+        # for i,row in data3.iterrows():
+        #     sql = "INSERT INTO " +tableName+" (`" +cols + "`) VALUES (" + "%s,"*(len(row)-1) + "%s)"
+        #     mycursor.execute(sql, tuple(row))
+        #     mydb.commit()
 
-    data2=data.drop_duplicates()    
+    duplicate_remov_dataFrame = pd.DataFrame(data.drop_duplicates()) 
+    semantaincs_arr = []
     
     if(itr == 1):# provenence semantics
-        df_provenence = pd.DataFrame(data2) 
-        provArr=[]
-        for x in range(df_provenence.shape[0]):
-            provArr.append("t"+str(x))
-        df_provenence['Annotation'] = provArr
-        print(df_provenence)    
+        for x in range(duplicate_remov_dataFrame.shape[0]):
+            semantaincs_arr.append("t"+str(x))
+        duplicate_remov_dataFrame['Annotation'] = semantaincs_arr
+        print(duplicate_remov_dataFrame)    
     
     if(itr == 2):# probabilty semantics
-        df_probabilty = pd.DataFrame(data2) 
-        probArr=[]
-        for x in range(df_probabilty.shape[0]):
-            probArr.append(round(random.uniform(0.0,1.0), 2))
-        df_probabilty['Annotation'] = probArr
-        print(df_probabilty)
+        for x in range(duplicate_remov_dataFrame.shape[0]):
+            semantaincs_arr.append(round(random.uniform(0.0,1.0), 2))
+        duplicate_remov_dataFrame['Annotation'] = semantaincs_arr
+        print(duplicate_remov_dataFrame)
     
     if(itr == 3):# certainity semantics
-        df_certainity = pd.DataFrame(data2) 
-        certainity=[]
-        for x in range(df_certainity.shape[0]):
-            certainity.append(round(random.uniform(0.0,1.0), 2))
-        df_certainity['Annotation'] = certainity
-        print(df_certainity)
+        for x in range(duplicate_remov_dataFrame.shape[0]):
+            semantaincs_arr.append(round(random.uniform(0.0,1.0), 2))
+        duplicate_remov_dataFrame['Annotation'] = semantaincs_arr
+        print(duplicate_remov_dataFrame)
 
     if(itr == 4):# standard semantics
-        df_standard = pd.DataFrame(data2) 
-        standard=[]
-        for x in range(df_standard.shape[0]):
-            standard.append(1)
-        df_standard['Annotation'] = standard
+        for x in range(duplicate_remov_dataFrame.shape[0]):
+            semantaincs_arr.append(1)
+        duplicate_remov_dataFrame['Annotation'] = semantaincs_arr
+        print(duplicate_remov_dataFrame)
 
-    if(itr > 0)   
-        cols = "`,`".join([str(i) for i in data2.columns.tolist()])
-        for i,row in data2.iterrows():
-            sql = "INSERT INTO " +tableName+ "(`" +cols + "`) VALUES (" + "%s,"*(len(row)-1) + "%s)"
-            mycursor.execute(sql, tuple(row))
-            mydb.commit()             
-    # print(data2)
+    # if(itr > 0):   
+    #     data2 = data.drop_duplicates()
+    #     cols = "`,`".join([str(i) for i in duplicate_remov_dataFrame.columns.tolist()])
+    #     for i,row in duplicate_remov_dataFrame.iterrows():
+    #         sql = "INSERT INTO " +tableName+ "(`" +cols + "`) VALUES (" + "%s,"*(len(row)-1) + "%s)"
+    #         mycursor.execute(sql, tuple(row))
+    #         mydb.commit()             
+        # print(data2)
 
-    # df = pd.read_sql_query("select * from dBproject4;", mydb)
+# df = pd.read_sql_query("select * from dBproject4;", mydb)
+while True:
+    input_query=input("Enter the relational algebra query: ")
+    read_table = pd.read_sql_query(input_query, mydb)
 
-    # print(df)
+    # semantic_choice = input("choose the semantincs:\n 0 - Bag semantics\n 1 - Provence semantics\n 2 - Probability semantics\n 3 - Certainity semantics\n 4 - Standard semantics\n " )
+    
+    # if(semantic_choice == str(1)):
+    # projection = read_table.groupby(read_table.columns.tolist(),as_index=False).size()
+    #     print(projection)
+    print(read_table)    
+    input_question = input("Do you want to continue yes/no: ")
+    if(input_question.upper() == "NO"):
+        break
