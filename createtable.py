@@ -58,9 +58,9 @@ for itr in range(5):
     statement = statement + '\n' + "Annotation " + 'varchar(255),'
     statement = statement[:-1] + ");"
 
-    print(statement)
-    mycursor.execute(statement)
-    mydb.commit()
+    # print(statement)
+    # mycursor.execute(statement)
+    # mydb.commit()
 
     # set columns of headers in the table
     head = ""
@@ -92,11 +92,11 @@ for itr in range(5):
     if(itr == 0):
         data3=data.groupby(data.columns.tolist(),as_index=False).size().reset_index(name='Annotation')
         print(data3)
-        cols = "`,`".join([str(i) for i in data3.columns.tolist()])
-        for i,row in data3.iterrows():
-            sql = "INSERT INTO " +tableName+" (`" +cols + "`) VALUES (" + "%s,"*(len(row)-1) + "%s)"
-            mycursor.execute(sql, tuple(row))
-            mydb.commit()
+        # cols = "`,`".join([str(i) for i in data3.columns.tolist()])
+        # for i,row in data3.iterrows():
+        #     sql = "INSERT INTO " +tableName+" (`" +cols + "`) VALUES (" + "%s,"*(len(row)-1) + "%s)"
+        #     mycursor.execute(sql, tuple(row))
+        #     mydb.commit()
 
     duplicate_remov_dataFrame = pd.DataFrame(data.drop_duplicates()) 
     semantaincs_arr = []
@@ -125,26 +125,54 @@ for itr in range(5):
         duplicate_remov_dataFrame['Annotation'] = semantaincs_arr
         print(duplicate_remov_dataFrame)
 
-    if(itr > 0):   
-        data2 = data.drop_duplicates()
-        cols = "`,`".join([str(i) for i in duplicate_remov_dataFrame.columns.tolist()])
-        for i,row in duplicate_remov_dataFrame.iterrows():
-            sql = "INSERT INTO " +tableName+ "(`" +cols + "`) VALUES (" + "%s,"*(len(row)-1) + "%s)"
-            mycursor.execute(sql, tuple(row))
-            mydb.commit()             
-        print(data2)
+    # if(itr > 0):   
+    #     data2 = data.drop_duplicates()
+    #     cols = "`,`".join([str(i) for i in duplicate_remov_dataFrame.columns.tolist()])
+    #     for i,row in duplicate_remov_dataFrame.iterrows():
+    #         sql = "INSERT INTO " +tableName+ "(`" +cols + "`) VALUES (" + "%s,"*(len(row)-1) + "%s)"
+    #         mycursor.execute(sql, tuple(row))
+    #         mydb.commit()             
+    #     print(data2)
 
 # df = pd.read_sql_query("select * from dBproject4;", mydb)
+
+# def getAllindex(list, num):
+#      return filter(lambda jp: list[jp]==num, range(0,len(list)))
+ 
+# jp = ['1','2','3','4','5','5','4','3','4','2','5']
+# print('adfadsfasdfasfas: ' , getAllindex(jp,'5'))
+
 while True:
     input_query=input("Enter the relational algebra query: ")
     read_table = pd.read_sql_query(input_query, mydb)
-
-    semantic_choice = input("choose the semantincs:\n 0 - Bag semantics\n 1 - Provence semantics\n 2 - Probability semantics\n 3 - Certainity semantics\n 4 - Standard semantics\n " )
+    print(read_table)
+    semantic_choice = input("choose the semantincs:\n 0 - Bag semantics\n 1 - Provenance semantics\n 2 - Probability semantics\n 3 - Certainity semantics\n 4 - Standard semantics\n " )
     
+    new_annotation = []
     if(semantic_choice == str(1)):
-    projection = read_table.groupby(read_table.columns.tolist(),as_index=False).size()
-    #     print(projection)
-    print(read_table)    
+        for i in read_table['Annotation']:
+            new_annotation.append(i.replace(",", "+"))
+        read_table['Annotation'] = new_annotation
+
+    if(semantic_choice == str(0)):
+        for i in read_table['Annotation']:
+            if(","in i):
+                print('true')
+
+    if(semantic_choice == str(2)):
+        for i in read_table['Annotation']:
+            str_empty = ""
+            str_empty = i.split(",")
+            sum = 1;
+            for j in str_empty:
+                sum = sum * (1 - float(j))
+            new_annotation.append(round((1 - sum) , 2))    
+        read_table['Annotation'] = new_annotation
+        print(read_table)
+    else:
+        print(read_table)    
+
     input_question = input("Do you want to continue yes/no: ")
+    #SELECT c,GROUP_CONCAT(Annotation) FROM `dbproject1` GROUP by 
     if(input_question.upper() == "NO"):
         break
