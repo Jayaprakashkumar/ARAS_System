@@ -135,42 +135,60 @@ for itr in range(5):
     #     print(data2)
 
 # df = pd.read_sql_query("select * from dBproject4;", mydb)
-
-# def getAllindex(list, num):
-#      return filter(lambda jp: list[jp]==num, range(0,len(list)))
- 
-# jp = ['1','2','3','4','5','5','4','3','4','2','5']
-# print('adfadsfasdfasfas: ' , getAllindex(jp,'5'))
-
+flag_create_union = True
 while True:
     input_query=input("Enter the relational algebra query: ")
-    read_table = pd.read_sql_query(input_query, mydb)
-    print(read_table)
-    semantic_choice = input("choose the semantincs:\n 0 - Bag semantics\n 1 - Provenance semantics\n 2 - Probability semantics\n 3 - Certainity semantics\n 4 - Standard semantics\n " )
     
-    new_annotation = []
-    if(semantic_choice == str(1)):
-        for i in read_table['Annotation']:
-            new_annotation.append(i.replace(",", "+"))
-        read_table['Annotation'] = new_annotation
+    if("create view" in input_query):
+        viewName = input_query.split(" ")[2]   
+        mydb._execute_query(input_query)  
 
-    if(semantic_choice == str(0)):
-        for i in read_table['Annotation']:
-            if(","in i):
-                print('true')
+        if("union" in input_query):
+            flag_create_union = True
+        else:
+            flag_create_union = False    
 
-    if(semantic_choice == str(2)):
-        for i in read_table['Annotation']:
-            str_empty = ""
-            str_empty = i.split(",")
-            sum = 1;
-            for j in str_empty:
-                sum = sum * (1 - float(j))
-            new_annotation.append(round((1 - sum) , 2))    
-        read_table['Annotation'] = new_annotation
-        print(read_table)
+        print(pd.read_sql_query("select * from "+viewName, mydb))
     else:
-        print(read_table)    
+        read_table= pd.read_sql_query(input_query,mydb)
+        print(read_table)
+        semantic_choice = input("choose the semantincs:\n 0 - Bag semantics\n 1 - Provenance semantics\n 2 - Probability semantics\n 3 - Certainity semantics\n 4 - Standard semantics\n " )
+        
+        new_annotation = []
+        if(semantic_choice == str(0)):
+            for i in read_table['Annotation']:
+                if(","in i):
+                    print('true')
+
+        if(semantic_choice == str(1)):
+            for i in read_table['Annotation']:
+                if(flag_create_union):
+                    new_annotation.append(i.replace(",", " + "))
+                else: 
+                    new_annotation.append(i.replace(",", " X "))
+
+            read_table['Annotation'] = new_annotation
+
+        if(semantic_choice == str(2)):
+            for i in read_table['Annotation']:
+                str_empty = ""
+                str_empty = i.split(",")
+                sum = 1;
+                for j in str_empty:
+                    sum = sum * (1 - float(j))
+                new_annotation.append(round((1 - sum) , 2))    
+            read_table['Annotation'] = new_annotation
+            print(read_table)
+
+        if(semantic_choice == str(4)):    
+            for i in read_table['Annotation']:
+                new_annotation.append(1)    
+            read_table['Annotation'] = new_annotation
+            print(read_table)
+        else:
+            print(read_table)
+
+        flag_create_union = True        
 
     input_question = input("Do you want to continue yes/no: ")
     #SELECT c,GROUP_CONCAT(Annotation) FROM `dbproject1` GROUP by 
