@@ -39,9 +39,6 @@ def createTable(mydb, mycursor):
                 longest[i] = len(row[i])
     # f.close()
 
-
-
-
     for itr in range(5):
         tableName = "production_products"+str(itr)
         statement = "create table "+tableName+"("

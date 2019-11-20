@@ -19,9 +19,9 @@ def joinTuples(table):
 def readTable(mydb, mycursor):
     check_loop = True
     check_union_or_prod = ""
+    viewName = ""
     while True:
         input_query=input("Enter the relational algebra query: ")
-
         if("create view" in input_query):
             check_loop = False
             viewName = input_query.split(" ")[2]   
@@ -33,6 +33,7 @@ def readTable(mydb, mycursor):
                 check_union_or_prod = "product"    
 
             print(pd.read_sql_query("select * from "+viewName, mydb))
+
         else:
             read_table= pd.read_sql_query(input_query,mydb)
             print(read_table)
@@ -45,58 +46,67 @@ def readTable(mydb, mycursor):
                         results = list(map(int, i.split(",")))
                         new_annotation.append(sum(results))    
                     read_table['Annotation'] = new_annotation
-                    print(read_table) 
+                
                 elif check_union_or_prod == "product": 
                     read_table['Annotation'] = joinTuples(read_table)      
-                    print(read_table)
-                        
-                      
+                                              
             if(semantic_choice == str(1)): #provenence semantics            
                 for i in read_table['Annotation']:
                     if(check_union_or_prod == "product"):
                         new_annotation.append(i.replace(",", " X "))
                     else: 
                         new_annotation.append(i.replace(",", " + "))
-
                 read_table['Annotation'] = new_annotation
-                print(read_table)
 
             if(semantic_choice == str(2)): #probability semantics
                 if (check_loop == True):
                     for i in read_table['Annotation']:
-                        str_empty = ""
                         str_empty = i.split(",")
                         summ = 1;
                         for j in str_empty:
                             summ = summ * (1 - float(j))
                         new_annotation.append(round((1 - summ) , 2))    
                     read_table['Annotation'] = new_annotation
-                    print(read_table)
 
                 else:
                     if check_union_or_prod == "union":
                         for i in read_table['Annotation']:
                             results = list(map(float, i.split(",")))
-                            total = sum(results) 
-                            product = np.prod(results)
-                            max_array.append(total + product)
-                            new_annotation.append(max_array)    
+                            total = sum(results)        # a+b+c 
+                            product = np.prod(results)  # abc
+                            sumVal = results[0] * results[len(results) - 1]
+                            
+                            for j in range(len(results)):    # ab + bc + ac
+                                if (j < len(results)-1 ):
+                                    sumVal = sumVal + (results[j] * results[j+1])
+                            
+                            new_annotation.append(round((total - product + sumVal),2))
                         read_table['Annotation'] = new_annotation
-                        print(read_table) 
                     
                     elif check_union_or_prod == "product": 
-                        read_table['Annotation'] = joinTuples(read_table)      
-                        print(read_table)
-                
+                        read_table['Annotation'] = joinTuples(read_table)  
+                                
+            if(semantic_choice == str(3)):  #uncertainity semantics
+                if (check_loop == True or check_union_or_prod == "union"):
+                    for i in read_table['Annotation']:
+                        str_empty = i.split(",")
+                        new_annotation.append(max(list(map(float, str_empty))))    
+                    read_table['Annotation'] = new_annotation
 
+                elif check_union_or_prod == "product": 
+                    read_table['Annotation'] = joinTuples(read_table)  
+ 
             if(semantic_choice == str(4)):  #standard semantics
                 for i in read_table['Annotation']:
                     new_annotation.append(1)    
                 read_table['Annotation'] = new_annotation
-                print(read_table)
-
-            # check_union_or_prod = True  
+                
+            check_union_or_prod = ""  
             check_loop = True      
+            print(read_table)
+
+            if(len(viewName) > 0):
+                mydb._execute_query("drop view "+viewName+"") 
         
         input_question = input("Do you want to continue yes/no: ")
         #SELECT c,GROUP_CONCAT(Annotation) FROM `dbproject1` GROUP by 
