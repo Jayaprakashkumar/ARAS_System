@@ -5,7 +5,7 @@ import csv, ast
 # import buildDatabase
 
 def createTable(mydb, mycursor):
-    f = open('C://Users//Win10//test_python//Productionproducts.csv', 'r')
+    f = open('C://Users//Win10//test_python//test.csv', 'r')
 
     reader = csv.reader(f)
     # print(random.randint(0, 1))
@@ -37,10 +37,10 @@ def createTable(mydb, mycursor):
                     type_list[i] = 'varchar'
             if len(row[i]) > longest[i]:
                 longest[i] = len(row[i])
-    # f.close()
+    f.close()
 
     for itr in range(5):
-        tableName = "production_products"+str(itr)
+        tableName = "green_paper_table"+str(itr)
         statement = "create table "+tableName+"("
         for i in range(len(headers)):
             if type_list[i] == 'varchar':
@@ -78,7 +78,7 @@ def createTable(mydb, mycursor):
             rowList = rowList +', '+ "%d"
 
         
-        data = pd.read_csv("Productionproducts.csv")
+        data = pd.read_csv("test.csv")
 
         # bag semantics 
         if(itr == 0):
