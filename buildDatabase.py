@@ -109,7 +109,6 @@ def readTable(mydb, mycursor):
                 mydb._execute_query("drop view "+viewName+"") 
         
         input_question = input("Do you want to continue yes/no: ")
-        #SELECT c,GROUP_CONCAT(Annotation) FROM `dbproject1` GROUP by 
         if(input_question.upper() == "NO"):
             break
     

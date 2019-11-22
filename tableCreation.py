@@ -5,9 +5,10 @@ import csv, ast
 # import buildDatabase
 
 def createTable(mydb, mycursor):
-    f = open('C://Users//Win10//test_python//test.csv', 'r')
-
+    f = open('test.csv', 'r')
     reader = csv.reader(f)
+    data = pd.read_csv(f)
+
     # print(random.randint(0, 1))
     longest, headers, type_list = [], [], []
             
@@ -78,7 +79,7 @@ def createTable(mydb, mycursor):
             rowList = rowList +', '+ "%d"
 
         
-        data = pd.read_csv("test.csv")
+        # data = pd.read_csv(f)
 
         # bag semantics 
         if(itr == 0):
