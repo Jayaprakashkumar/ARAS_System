@@ -2,7 +2,6 @@ import random
 import pandas as pd
 import mysql.connector
 import csv, ast
-# import buildDatabase
 
 def multiple_table_insertion(mydb,mycursor,data2,tableName):
     cols = "`,`".join([str(i) for i in data2.columns.tolist()])
@@ -13,6 +12,7 @@ def multiple_table_insertion(mydb,mycursor,data2,tableName):
 
 def createTable(mydb, mycursor, data, multiTable, myTabName):    
     if(multiTable == True):
+        print(data)
         tableName = myTabName
         statement = "create table "+tableName+" ("
         for i in data.columns:
@@ -20,7 +20,7 @@ def createTable(mydb, mycursor, data, multiTable, myTabName):
         # statement = statement + '\n' + "Annotation " + 'varchar(255),'
         statement = statement[:-1] + ");"
 
-        print(statement)
+        # print(statement)
         mycursor.execute(statement)
         mydb.commit()
 
@@ -35,7 +35,7 @@ def createTable(mydb, mycursor, data, multiTable, myTabName):
             statement = statement + '\n' + "Annotation " + 'varchar(255),'
             statement = statement[:-1] + ");"
 
-            # print(statement)
+            print(statement)
             # mycursor.execute(statement)
             # mydb.commit()
 
@@ -43,11 +43,11 @@ def createTable(mydb, mycursor, data, multiTable, myTabName):
             if(itr == 0):
                 data3=data.groupby(data.columns.tolist(),as_index=False).size().reset_index(name='Annotation')
                 print(data3)
-                # cols = "`,`".join([str(i) for i in data3.columns.tolist()])
-                # for i,row in data3.iterrows():
-                #     sql = "INSERT INTO " +tableName+" (`" +cols + "`) VALUES (" + "%s,"*(len(row)-1) + "%s)"
-                #     mycursor.execute(sql, tuple(row))
-                #     mydb.commit()
+                cols = "`,`".join([str(i) for i in data3.columns.tolist()])
+                for i,row in data3.iterrows():
+                    sql = "INSERT INTO " +tableName+" (`" +cols + "`) VALUES (" + "%s,"*(len(row)-1) + "%s)"
+                    # mycursor.execute(sql, tuple(row))
+                    # mydb.commit()
 
             duplicate_remov_dataFrame = pd.DataFrame(data.drop_duplicates()) 
             semantaincs_arr = []
@@ -76,10 +76,10 @@ def createTable(mydb, mycursor, data, multiTable, myTabName):
                 duplicate_remov_dataFrame['Annotation'] = semantaincs_arr
                 print(duplicate_remov_dataFrame)
 
-            if(itr > 0):   
+            # if(itr > 0):   
                 # data2 = data.drop_duplicates()
                 
-                multiple_table_insertion(mydb,mycursor,data,tableName)
+                # multiple_table_insertion(mydb,mycursor,data,tableName)
                 
                 # cols = "`,`".join([str(i) for i in duplicate_remov_dataFrame.columns.tolist()])
                 # for i,row in duplicate_remov_dataFrame.iterrows():
