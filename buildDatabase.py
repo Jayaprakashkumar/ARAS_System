@@ -12,8 +12,7 @@ def queryExecution(read_table, check_loop, check_union_or_prod, semantic_choice)
     new_annotation = []
     if(semantic_choice == str(0)):   #bag semantics
         if (check_loop == True or check_union_or_prod == "union"):
-            header= read_table.columns.tolist()
-            print(header)
+            header= read_table.columns.tolist()            
             header.remove('annotation')
             datas=read_table.groupby(header)['annotation'].agg([('annotation', ', '.join)]).reset_index()
             print(datas)    
@@ -53,7 +52,7 @@ def queryExecution(read_table, check_loop, check_union_or_prod, semantic_choice)
             print(datas)         
             for i in datas['annotation']:
                 str_empty = i.split(",")
-                summ = 1;
+                summ = 1
                 for j in str_empty:
                     summ = summ * (1 - float(j))
                 new_annotation.append(round((1 - summ) , 2))    
@@ -140,15 +139,15 @@ def queryExecution(read_table, check_loop, check_union_or_prod, semantic_choice)
              
     return (datas)
 
-def joinTuples(table):
-    new_annotation = []    
-    for i in table['Annotation']:
-        str_empty = ""
-        str_empty = i.split(",")       
-        prod = 1
-        for j in str_empty:
-            prod = prod * float(j)
-        new_annotation.append(prod)
+# def joinTuples(table):
+#     new_annotation = []    
+#     for i in table['Annotation']:
+#         str_empty = ""
+#         str_empty = i.split(",")       
+#         prod = 1
+#         for j in str_empty:
+#             prod = prod * float(j)
+#         new_annotation.append(prod)
 
 # def productTuples(table):
 #     new_annotation = []       

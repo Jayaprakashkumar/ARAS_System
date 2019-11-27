@@ -32,22 +32,22 @@ def createTable(mydb, mycursor, data, multiTable, myTabName):
             statement = "create table "+tableName+"("
             for i in data.columns:
                 statement = (statement + '\n{} varchar(255),').format(i.lower())
-            statement = statement + '\n' + "Annotation " + 'varchar(255),'
+            statement = statement + '\n' + "annotation " + 'varchar(255),'
             statement = statement[:-1] + ");"
 
-            # print(statement)
-            # mycursor.execute(statement)
-            # mydb.commit()
+            print(statement)
+            mycursor.execute(statement)
+            mydb.commit()
 
             # bag semantics 
             if(itr == 0):
                 data3=data.groupby(data.columns.tolist(),as_index=False).size().reset_index(name='Annotation')
                 print(data3)
-                # cols = "`,`".join([str(i) for i in data3.columns.tolist()])
-                # for i,row in data3.iterrows():
-                #     sql = "INSERT INTO " +tableName+" (`" +cols + "`) VALUES (" + "%s,"*(len(row)-1) + "%s)"
-                #     mycursor.execute(sql, tuple(row))
-                #     mydb.commit()
+                cols = "`,`".join([str(i) for i in data3.columns.tolist()])
+                for i,row in data3.iterrows():
+                    sql = "INSERT INTO " +tableName+" (`" +cols + "`) VALUES (" + "%s,"*(len(row)-1) + "%s)"
+                    mycursor.execute(sql, tuple(row))
+                    mydb.commit()
 
             duplicate_remov_dataFrame = pd.DataFrame(data.drop_duplicates()) 
             semantaincs_arr = []
@@ -76,8 +76,8 @@ def createTable(mydb, mycursor, data, multiTable, myTabName):
                 duplicate_remov_dataFrame['annotation'] = semantaincs_arr
                 print(duplicate_remov_dataFrame)
 
-            # if(itr > 0):   
-            #     multiple_table_insertion(mydb,mycursor,duplicate_remov_dataFrame,tableName)
+            if(itr > 0):   
+                multiple_table_insertion(mydb,mycursor,duplicate_remov_dataFrame,tableName)
                 
 
     
