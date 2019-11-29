@@ -39,8 +39,8 @@ def createTable(engine,mydb, mycursor, data, multiTable, myTabName):
             statement = statement[:-1] + ");"
 
             # print(statement) 
-            mycursor.execute(statement)
-            mydb.commit()
+            # mycursor.execute(statement)
+            # mydb.commit()
             
             duplicate_remov_dataFrame = pd.DataFrame(data.drop_duplicates()) 
             semantaincs_arr = []            
@@ -71,7 +71,7 @@ def createTable(engine,mydb, mycursor, data, multiTable, myTabName):
                     semantaincs_arr.append(str(1))
                 duplicate_remov_dataFrame['annotation'] = semantaincs_arr
 
-            multiple_table_insertion(engine,mydb,mycursor,duplicate_remov_dataFrame,tableName)
+            # multiple_table_insertion(engine,mydb,mycursor,duplicate_remov_dataFrame,tableName)
                 
 
     
