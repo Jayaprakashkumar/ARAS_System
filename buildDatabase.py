@@ -4,6 +4,9 @@ import mysql.connector
 import csv, ast
 import numpy as np
 import tableCreation
+import sqlite3
+import pymysql
+from sqlalchemy import create_engine
 
 
 def queryExecution(read_table, check_loop, check_union_or_prod, semantic_choice):
@@ -45,7 +48,7 @@ def queryExecution(read_table, check_loop, check_union_or_prod, semantic_choice)
             datas=read_table.groupby(header)['annotation'].agg([('annotation', ' + '.join)]).reset_index()            
 
     if(semantic_choice == str(2)): #probability semantics
-        if (check_loop == True):
+        if (check_loop == True or check_union_or_prod == "union"):
             header= read_table.columns.tolist()
             header.remove('annotation')
             datas=read_table.groupby(header)['annotation'].agg([('annotation', ', '.join)]).reset_index()
@@ -59,24 +62,7 @@ def queryExecution(read_table, check_loop, check_union_or_prod, semantic_choice)
             datas['annotation'] = new_annotation
 
         else:
-            if check_union_or_prod == "union":
-                header= read_table.columns.tolist()
-                header.remove('annotation')
-                datas=read_table.groupby(header)['annotation'].agg([('annotation', ', '.join)]).reset_index()
-                for i in datas['annotation']:
-                    results = list(map(float, i.split(",")))
-                    total = sum(results)        # a+b+c 
-                    product = np.prod(results)  # abc
-                    sumVal = results[0] * results[len(results) - 1]
-                    
-                    for j in range(len(results)):    # ab + bc + ac
-                        if (j < len(results)-1 ):
-                            sumVal = sumVal + (results[j] * results[j+1])
-                    
-                    new_annotation.append(round((total + product - sumVal),4))
-                datas['annotation'] = new_annotation
-            
-            elif check_union_or_prod == "product": 
+            if check_union_or_prod == "product": 
                 read_table['Annotation'] = read_table.apply(lambda row: (str(round(float(row['Annotation'])*float(row['Annotation1']),4))),axis=1)
                 read_table.drop('Annotation1', axis=1, inplace=True)
                 header= read_table.columns.tolist()
@@ -138,29 +124,7 @@ def queryExecution(read_table, check_loop, check_union_or_prod, semantic_choice)
             datas['Annotation'] =new_annotation
              
     return (datas)
-
-# def joinTuples(table):
-#     new_annotation = []    
-#     for i in table['Annotation']:
-#         str_empty = ""
-#         str_empty = i.split(",")       
-#         prod = 1
-#         for j in str_empty:
-#             prod = prod * float(j)
-#         new_annotation.append(prod)
-
-# def productTuples(table):
-#     new_annotation = []       
-#     for i,j in table['Annotation'],table['Annotation1']:
-#         prod = 1        
-#         prod = prod * float(j) * float(i)
-#         new_annotation.append(prod)
-#     print(new_annotation)
-#     return(new_annotation)
-
-
-
-        
+       
 def readTable(mydb, mycursor):
     check_loop = True
     check_union_or_prod = ""
@@ -186,7 +150,7 @@ def readTable(mydb, mycursor):
                             check_union_or_prod = "product"  
                        
                     updated_table = queryExecution(queue, check_loop, check_union_or_prod, semantic_choice)    
-                    tableCreation.createTable(mydb, mycursor, updated_table, True, "T"+str(k))  
+                    tableCreation.createTable(engine,mydb, mycursor, updated_table, True, "t"+str(k))  
                     check_union_or_prod=""
                     check_loop=True
                 k += 1;
@@ -221,9 +185,10 @@ passwd="",
 database="mydatabase"
 )
 
-mycursor = mydb.cursor()          
-f = open('test.csv', 'r')
+mycursor = mydb.cursor()
+engine = create_engine("mysql+pymysql://{user}:{pw}@localhost/{db}".format(user="root",pw="",db="mydatabase"))          
+f = open('Sales.staffs.csv', 'r')
 data = pd.read_csv(f)
-tableCreation.createTable(mydb, mycursor, data, False, "green_paper_table")            
+tableCreation.createTable(engine,mydb, mycursor, data, False, "Sales_staf_Ref")            
 readTable(mydb, mycursor)
 f.close()
