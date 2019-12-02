@@ -8,7 +8,6 @@ import sqlite3
 from sqlalchemy import create_engine
 import datetime
 
-
 def queryExecution(read_table, check_loop, check_union_or_prod, semantic_choice):
     # print(read_table)    
     datas = []
@@ -18,7 +17,6 @@ def queryExecution(read_table, check_loop, check_union_or_prod, semantic_choice)
             header= read_table.columns.tolist()            
             header.remove('annotation')
             datas=read_table.groupby(header)['annotation'].agg([('annotation', ', '.join)]).reset_index()
-            # print(datas)    
             for i in datas['annotation']:
                 results = list(map(int, i.split(",")))
                 new_annotation.append(sum(results))
@@ -40,7 +38,6 @@ def queryExecution(read_table, check_loop, check_union_or_prod, semantic_choice)
         if(check_union_or_prod == "product"):
             read_table['Annotation']=read_table['Annotation'] +" X "+ read_table['Annotation1']
             read_table.drop('Annotation1', axis=1, inplace=True)
-            # new_annotation.append(i.replace(",", " X "))
             datas = read_table
         else: 
             header= read_table.columns.tolist()
@@ -52,7 +49,6 @@ def queryExecution(read_table, check_loop, check_union_or_prod, semantic_choice)
             header= read_table.columns.tolist()
             header.remove('annotation')
             datas=read_table.groupby(header)['annotation'].agg([('annotation', ', '.join)]).reset_index()
-            # print(datas)         
             for i in datas['annotation']:
                 str_empty = i.split(",")
                 summ = 1
@@ -68,7 +64,6 @@ def queryExecution(read_table, check_loop, check_union_or_prod, semantic_choice)
                 header= read_table.columns.tolist()
                 header.remove('Annotation')
                 datas=read_table.groupby(header)['Annotation'].agg([('Annotation', ', '.join)]).reset_index()
-                # print(datas)
                 for i in datas['Annotation']:
                     str_empty = i.split(",")
                     summ = 1;
@@ -76,21 +71,18 @@ def queryExecution(read_table, check_loop, check_union_or_prod, semantic_choice)
                         summ = summ * (1 - float(j))
                     new_annotation.append(round((1 - summ) , 2))    
                 datas['Annotation'] = new_annotation
-                # read_table['Annotation'] = read_table.apply(lambda row: (float(row['Annotation'])*float(row['Annotation1'])),axis=1)  
                         
     if(semantic_choice == str(3)):  #uncertainity semantics
         if (check_loop == True or check_union_or_prod == "union"):
             header= read_table.columns.tolist()            
             header.remove('annotation')
             datas=read_table.groupby(header)['annotation'].agg([('annotation', ', '.join)]).reset_index()
-            # print(datas)            
             for i in datas['annotation']:               
                 str_empty = i.split(",")
                 new_annotation.append(max(list(map(float, str_empty))))    
             datas['annotation'] = new_annotation
 
         elif check_union_or_prod == "product": 
-            # read_table['Annotation'] = joinTuples(read_table)
             read_table['Annotation'] = read_table.apply(lambda row: (str(float(row['Annotation'])*float(row['Annotation1']))),axis=1)
             read_table.drop('Annotation1', axis=1, inplace=True)
             header= read_table.columns.tolist()
@@ -121,8 +113,8 @@ def queryExecution(read_table, check_loop, check_union_or_prod, semantic_choice)
                 results = list(map(int, i.split(",")))
                 new_annotation.append(np.prod(results))
             datas['Annotation'] =new_annotation
-    
-    # print(datas)                     
+
+    print(datas)
     return (datas)
        
 def readTable(mydb, mycursor):
@@ -133,15 +125,18 @@ def readTable(mydb, mycursor):
     while True:
         input_query=input("Enter the relational algebra query: ")
         semantic_choice = input("choose the semantincs:\n 0 - Bag semantics\n 1 - Provenance semantics\n 2 - Probability semantics\n 3 - Uncertainity semantics\n 4 - Standard semantics\n " )
-        start_time = datetime.datetime.now()
+        startTime = datetime.datetime.now()
+            
         if("#" in input_query):
             queryList = input_query.split("#")
 
-            
+            LastInLoop=False;
             for query in queryList:
                 if len(query) > 0:
+                    LastInLoop=False;
                     queue = pd.read_sql_query(query, mydb)
-                        
+                    if(query==queryList[-1]):
+                        LastInLoop=True;
                     if("union" in query or "join" in query):
                         check_loop = False  
                         if("union" in query):
@@ -150,16 +145,14 @@ def readTable(mydb, mycursor):
                             check_union_or_prod = "product"  
                        
                     updated_table = queryExecution(queue, check_loop, check_union_or_prod, semantic_choice)    
-                    print(updated_table)
-                    tableCreation.createTable(engine,mydb, mycursor, updated_table, True, "t"+str(k))  
+                    tableCreation.createTable(engine,mydb, mycursor, updated_table, True, "t"+str(k),LastInLoop)  
                     check_union_or_prod=""
                     check_loop=True
-                k += 1;
+                k += 1
 
             # to drop the tables
-            for tableNo in range(k):                  
+            for tableNo in range(k-1):                  
                 tName = "t"+str(tableNo)
-                # print(tName)
                 mycursor.execute("DROP TABLE "+tName+"", mydb)
             k = 0
 
@@ -172,13 +165,13 @@ def readTable(mydb, mycursor):
                     check_union_or_prod = "product"    
             queue = pd.read_sql_query(input_query, mydb)                        
             updated_table = queryExecution(queue, check_loop, check_union_or_prod,semantic_choice)
-            print(updated_table)
+            # print(updated_table)
                                                 
-        end_time = datetime.datetime.now()
-        total_time = end_time - start_time
-
-        print("Execution Time in seconds: ",total_time.seconds)
+        endTime = datetime.datetime.now()
+        totalTime = endTime - startTime
+        print("Execution time in seconds", totalTime.seconds)       
         input_question = input("Do you want to continue yes/no: ")
+        
         if(input_question.upper() == "NO"):
             break
     
@@ -191,9 +184,9 @@ database="mydatabase"
 
 mycursor = mydb.cursor()
 engine = create_engine("mysql+pymysql://{user}:{pw}@localhost/{db}".format(user="root",pw="",db="mydatabase"))          
-f = open('test.csv', 'r')
+f = open('Sales.orders.csv', 'r')
 data = pd.read_csv(f)
 data.columns=data.columns.str.replace(' ', '')
-tableCreation.createTable(engine,mydb, mycursor, data, False, "sales_staff")            
+tableCreation.createTable(engine,mydb, mycursor, data, False, "sales_orders",False)            
 readTable(mydb, mycursor)
 f.close()
