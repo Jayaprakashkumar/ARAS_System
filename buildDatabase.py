@@ -36,7 +36,7 @@ def queryExecution(read_table, check_loop, check_union_or_prod, semantic_choice)
                                         
     if(semantic_choice == str(1)): #provenence semantics     
         if(check_union_or_prod == "product"):
-            read_table['Annotation']=read_table['Annotation'] +" X "+ read_table['Annotation1']
+            read_table['Annotation']= "("+ read_table['Annotation'] +" X "+ read_table['Annotation1'] + ")"
             read_table.drop('Annotation1', axis=1, inplace=True)
             datas = read_table
         else: 
@@ -124,7 +124,7 @@ def readTable(mydb, mycursor):
     k = 0
     while True:
         input_query=input("Enter the relational algebra query: ")
-        semantic_choice = input("choose the semantincs:\n 0 - Bag semantics\n 1 - Provenance semantics\n 2 - Probability semantics\n 3 - Uncertainity semantics\n 4 - Standard semantics\n " )
+        semantic_choice = input("choose the semantincs:\n 0 - Bag semantics\n 1 - Provenance semantics\n 2 - Probability semantics\n 3 - Certainity semantics\n 4 - Standard semantics\n " )
         startTime = datetime.datetime.now()
             
         if("#" in input_query):
